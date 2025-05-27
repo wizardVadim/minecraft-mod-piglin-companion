@@ -1,0 +1,36 @@
+Initialized native services in: /Users/vadimvehov/.gradle/native
+Initialized jansi services in: /Users/vadimvehov/.gradle/native
+Received JVM installation metadata from '/Users/vadimvehov/.sdkman/candidates/java/17.0.10-tem': {JAVA_HOME=/Users/vadimvehov/.sdkman/candidates/java/17.0.10-tem, JAVA_VERSION=17.0.10, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.10+7, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.10+7, VM_VENDOR=Eclipse Adoptium, OS_ARCH=aarch64}
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.8/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: /Users/vadimvehov/.gradle/daemon/8.8 Command: /Users/vadimvehov/.sdkman/candidates/java/17.0.10-tem/bin/java --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED -Xmx3G -Dfile.encoding=UTF-8 -Duser.country=RU -Duser.language=ru -Duser.variant -cp /Users/vadimvehov/.gradle/wrapper/dists/gradle-8.8-bin/dl7vupf4psengwqhwktix4v1/gradle-8.8/lib/gradle-launcher-8.8.jar -javaagent:/Users/vadimvehov/.gradle/wrapper/dists/gradle-8.8-bin/dl7vupf4psengwqhwktix4v1/gradle-8.8/lib/agents/gradle-instrumentation-agent-8.8.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.8
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 0.559 secs.
+The client will now receive all logging from the daemon (pid: 45154). The daemon log file: /Users/vadimvehov/.gradle/daemon/8.8/daemon-45154.out.log
+Daemon will be stopped at the end of the build 
+Using 10 worker leases.
+Received JVM installation metadata from '/Users/vadimvehov/.sdkman/candidates/java/17.0.10-tem': {JAVA_HOME=/Users/vadimvehov/.sdkman/candidates/java/17.0.10-tem, JAVA_VERSION=17.0.10, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.10+7, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.10+7, VM_VENDOR=Eclipse Adoptium, OS_ARCH=aarch64}
+Watching the file system is configured to be enabled if available
+Now considering [/Users/vadimvehov/Documents/Minecraft-mods/piglin-companion] as hierarchies to watch
+File system watching is active
+Starting Build
+Transforming foojay-resolver-0.7.0.jar (org.gradle.toolchains:foojay-resolver:0.7.0) with InstrumentationAnalysisTransform
+Transforming gson-2.9.1.jar (com.google.code.gson:gson:2.9.1) with InstrumentationAnalysisTransform
+Transforming foojay-resolver-0.7.0.jar (org.gradle.toolchains:foojay-resolver:0.7.0) with InstrumentationAnalysisTransform
+Transforming foojay-resolver-0.7.0.jar (org.gradle.toolchains:foojay-resolver:0.7.0) with MergeInstrumentationAnalysisTransform
+Transforming gson-2.9.1.jar (com.google.code.gson:gson:2.9.1) with InstrumentationAnalysisTransform
+Transforming gson-2.9.1.jar (com.google.code.gson:gson:2.9.1) with MergeInstrumentationAnalysisTransform
+Transforming foojay-resolver-0.7.0.jar (org.gradle.toolchains:foojay-resolver:0.7.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming gson-2.9.1.jar (com.google.code.gson:gson:2.9.1) with ExternalDependencyInstrumentingArtifactTransform
+Settings evaluated using settings file '/Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/settings.gradle'.
+Projects loaded. Root project using build file '/Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/build.gradle'.
+Included projects: [root project 'piglin-companion']
+
+> Configure project :
+Evaluating root project 'piglin-companion' using build file '/Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/build.gradle'.
+Caching disabled for Groovy DSL script compilation (cp_proj) because:
+  Build cache is disabled
+  Not worth caching.
+Compiling build file '/Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/build.gradle' using SubsetScriptTransformer.
+Resource missing. [HTTP GET: https://repo.maven.apache.org/maven2/org/spongepowered/mixin/org.spongepowered.mixin.gradle.plugin/0.7.4/org.spongepowered.mixin.gradle.plugin-0.7.4.pom]
+Resource missing. [HTTP GET: https://maven.minecraftforge.net/org/spongepowered/mixin/org.spongepowered.mixin.gradle.plugin/0.7.4/org.spongepowered.mixin.gradle.plugin-0.7.4.pom]
+Watched directory hierarchies: []

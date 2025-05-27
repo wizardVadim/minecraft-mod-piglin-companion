@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:entity/piglin",
+  "textures": {
+    "layer0": "piglin_companion_mod:textures/entity/piglin_companion.png"
+  }
+}
