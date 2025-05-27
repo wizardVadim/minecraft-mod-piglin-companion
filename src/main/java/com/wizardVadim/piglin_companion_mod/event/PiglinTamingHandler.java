@@ -60,7 +60,8 @@ public class PiglinTamingHandler {
                             System.out.println("Create new piglin " + companion.getTextureVariant());
                             companion.moveTo(target.getX(), target.getY(), target.getZ(), target.getYRot(), target.getXRot());
                             companion.tame(player);
-                            companion.setOrderedToSit(true);
+                            companion.setOwnerUUID(player.getUUID());
+                            companion.setOrderedToSit(false);
                             level.addFreshEntity(companion);
                             target.remove(Entity.RemovalReason.DISCARDED);
 

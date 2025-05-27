@@ -9,6 +9,9 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -41,10 +44,15 @@ public class PiglinCompanion extends TamableAnimal {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new FollowOwnerGoal(this, 1.0D, 5.0F, 2.0F, false));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2D, true));
+        this.goalSelector.addGoal(2, new FollowOwnerGoal(this, 1.0D, 5.0F, 2.0F, false));
+        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this));
     }
 
     public static AttributeSupplier.@NotNull Builder createAttributes() {
@@ -57,10 +65,9 @@ public class PiglinCompanion extends TamableAnimal {
 
     @Override
     public MobType getMobType() {
-        return MobType.UNDEAD;
+        return MobType.UNDEFINED;
     }
 
-    // Обработка взаимодействия игрока с питомцем (приручение, кормление и т.д.)
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
