@@ -62,6 +62,11 @@ public class PiglinTamingHandler {
                             companion.tame(player);
                             companion.setOwnerUUID(player.getUUID());
                             companion.setOrderedToSit(false);
+
+                            for (var slot : net.minecraft.world.entity.EquipmentSlot.values()) {
+                                companion.setItemSlot(slot, piglin.getItemBySlot(slot).copy());
+                            }
+
                             level.addFreshEntity(companion);
                             target.remove(Entity.RemovalReason.DISCARDED);
 

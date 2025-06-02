@@ -127,6 +127,11 @@ Adding Libraries to Inheritance
 Reading Input: /Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/build/libs/piglin_companion_mod-1.0.0.jar
 Adding input to inheritance map
 Processing entries
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$CustomAttackGoal/canUse()Z from net/minecraft/world/entity/ai/goal/Goal/canUse()Z: canUse -> m_8036_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$CustomAttackGoal/start()V from net/minecraft/world/entity/ai/goal/Goal/start()V: start -> m_8056_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$CustomAttackGoal/tick()V from net/minecraft/world/entity/ai/goal/Goal/tick()V: tick -> m_8037_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$CustomAttackGoal/stop()V from net/minecraft/world/entity/ai/goal/Goal/stop()V: stop -> m_8041_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$HurtByTargetNoFriendliesGoal/canUse()Z from net/minecraft/world/entity/ai/goal/target/HurtByTargetGoal/canUse()Z: canUse -> m_8036_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/client/renderer/PiglinCompanionRenderer/shouldShowName(Lnet/minecraft/world/entity/LivingEntity;)Z from net/minecraft/client/renderer/entity/MobRenderer/shouldShowName(Lnet/minecraft/world/entity/LivingEntity;)Z: shouldShowName -> m_6512_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/client/renderer/PiglinCompanionRenderer/shouldShowName(Lnet/minecraft/world/entity/Entity;)Z from net/minecraft/client/renderer/entity/MobRenderer/shouldShowName(Lnet/minecraft/world/entity/Entity;)Z: shouldShowName -> m_6512_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/client/renderer/PiglinCompanionRenderer/getTextureLocation(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/resources/ResourceLocation; from net/minecraft/client/renderer/entity/EntityRenderer/getTextureLocation(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/resources/ResourceLocation;: getTextureLocation -> m_5478_
@@ -136,9 +141,11 @@ Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/P
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult; from net/minecraft/world/entity/animal/Animal/mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;: mobInteract -> m_6071_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/defineSynchedData()V from net/minecraft/world/entity/TamableAnimal/defineSynchedData()V: defineSynchedData -> m_8097_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V from net/minecraft/world/entity/TamableAnimal/addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V: addAdditionalSaveData -> m_7380_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/canFireProjectileWeapon(Lnet/minecraft/world/item/ProjectileWeaponItem;)Z from net/minecraft/world/entity/Mob/canFireProjectileWeapon(Lnet/minecraft/world/item/ProjectileWeaponItem;)Z: canFireProjectileWeapon -> m_5886_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/getMobType()Lnet/minecraft/world/entity/MobType; from net/minecraft/world/entity/LivingEntity/getMobType()Lnet/minecraft/world/entity/MobType;: getMobType -> m_6336_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/registerGoals()V from net/minecraft/world/entity/Mob/registerGoals()V: registerGoals -> m_8099_
 Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/isFood(Lnet/minecraft/world/item/ItemStack;)Z from net/minecraft/world/entity/animal/Animal/isFood(Lnet/minecraft/world/item/ItemStack;)Z: isFood -> m_6898_
+Conflicting propagated mapping for com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion/performRangedAttack(Lnet/minecraft/world/entity/LivingEntity;F)V from net/minecraft/world/entity/monster/RangedAttackMob/performRangedAttack(Lnet/minecraft/world/entity/LivingEntity;F)V: performRangedAttack -> m_6504_
 Adding extras
 Sorting
 Writing Output: /Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/build/reobfJar/output.jar
@@ -169,6 +176,8 @@ Writing Output: /Users/vadimvehov/Documents/Minecraft-mods/piglin-companion/buil
   com/wizardVadim/piglin_companion_mod/client/renderer/
   com/wizardVadim/piglin_companion_mod/client/renderer/PiglinCompanionRenderer.class
   com/wizardVadim/piglin_companion_mod/entity/
+  com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$CustomAttackGoal.class
+  com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion$HurtByTargetNoFriendliesGoal.class
   com/wizardVadim/piglin_companion_mod/entity/PiglinCompanion.class
   com/wizardVadim/piglin_companion_mod/event/
   com/wizardVadim/piglin_companion_mod/event/PiglinTamingHandler.class
