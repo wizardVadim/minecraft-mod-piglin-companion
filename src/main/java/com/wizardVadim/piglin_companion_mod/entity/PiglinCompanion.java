@@ -1,6 +1,7 @@
 package com.wizardVadim.piglin_companion_mod.entity;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -180,6 +181,16 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
     @Override
     public MobType getMobType() {
         return MobType.UNDEFINED;
+    }
+
+    @Override
+    public Component getName() {
+        return Component.translatable("entity.piglin_companion_mod.piglin_companion");
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return this.getName();
     }
 
     public static class CustomAttackGoal extends Goal {
