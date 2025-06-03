@@ -27,6 +27,10 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
 
     private static final EntityDataAccessor<Integer> DATA_TEXTURE_VARIANT =
@@ -37,12 +41,14 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         this.setTame(false);
     }
 
+    private static final HashMap<Item, Float> FOOD_MAP = getFoodMap();
+
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 24.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D);
+                .add(Attributes.FOLLOW_RANGE, 20.0D);
     }
 
     @Override
@@ -57,6 +63,17 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
 
     public void setTextureVariant(int variant) {
         this.entityData.set(DATA_TEXTURE_VARIANT, variant);
+    }
+
+    private static HashMap<Item, Float> getFoodMap() {
+        HashMap<Item, Float> map = new HashMap<>();
+
+        map.put(Items.GOLD_NUGGET, 1.0F);
+        map.put(Items.GOLD_ORE, 1.5F);
+        map.put(Items.GOLD_INGOT, 2.5F);
+        map.put(Items.GOLD_BLOCK, 24.0F);
+
+        return map;
     }
 
     @Override
@@ -80,7 +97,10 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         ItemStack bow = this.getMainHandItem();
         if (!(bow.getItem() instanceof BowItem)) return;
 
-        AbstractArrow arrow = new Arrow(this.level(), this);
+        Arrow arrow = new Arrow(this.level(), this);
+        arrow.setBaseDamage(2.0);
+        arrow.setOwner(this);
+
         double dx = target.getX() - this.getX();
         double dy = target.getY(0.3333333333333D) - arrow.getY();
         double dz = target.getZ() - this.getZ();
@@ -138,26 +158,28 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
                     return InteractionResult.SUCCESS;
                 }
             }
-        } else if (this.isFood(stack)) {
+        }
+
+        if (this.isFood(stack)) {
             if (!player.getAbilities().instabuild) {
                 stack.shrink(1);
             }
-            if (this.random.nextInt(3) == 0) {
-                this.tame(player);
-                this.setOrderedToSit(false);
-                this.level().broadcastEntityEvent(this, (byte) 7);
-            } else {
-                this.level().broadcastEntityEvent(this, (byte) 6);
-            }
-            return InteractionResult.SUCCESS;
+
+            this.heal(getHealPointsByFood(stack));
+
         }
 
         return super.mobInteract(player, hand);
     }
 
+    private Float getHealPointsByFood(ItemStack stack) {
+        return FOOD_MAP.getOrDefault(stack.getItem(), 0.0F);
+    }
+
     @Override
     public boolean isFood(ItemStack stack) {
-        return stack.getItem() == Items.GOLD_INGOT;
+
+        return FOOD_MAP.containsKey(stack.getItem());
     }
 
     @Override
@@ -193,16 +215,38 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         return this.getName();
     }
 
+    @Override
+    public void aiStep() {
+        super.aiStep();
+
+        healByTicks(50, 0.5F);
+    }
+
+    public void healByTicks(int ticksInterval, float healPoints) {
+        if (!this.level().isClientSide && this.getHealth() < this.getMaxHealth()) {
+            if (this.tickCount % ticksInterval == 0) {
+                this.heal(healPoints);
+            }
+        }
+    }
+
     public static class CustomAttackGoal extends Goal {
         private final PiglinCompanion mob;
         private final double speed;
         private final boolean longMemory;
-        private Goal currentGoal;
+        private Goal currentGoal = null;
+        private Goal activeGoal = null;
+
+        private final Goal rangedGoal;
+        private final Goal meleeGoal;
 
         public CustomAttackGoal(PiglinCompanion mob, double speed, boolean longMemory) {
             this.mob = mob;
             this.speed = speed;
             this.longMemory = longMemory;
+
+            this.rangedGoal = new RangedBowAttackGoal<>(mob, speed, 20, 15.0F);
+            this.meleeGoal = new MeleeAttackGoal(mob, speed, longMemory);
         }
 
         @Override
@@ -218,27 +262,38 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         }
 
         @Override
+        public boolean canContinueToUse() {
+            return this.canUse();
+        }
+
+        @Override
         public void stop() {
-            if (currentGoal != null) currentGoal.stop();
+            if (currentGoal != null) {
+                currentGoal.stop();
+                currentGoal = null;
+                activeGoal = null;
+            }
         }
 
         @Override
         public void tick() {
             this.selectGoal();
-            if (currentGoal != null) currentGoal.tick();
+            if (currentGoal != null) {
+                currentGoal.tick();
+            }
         }
 
         private void selectGoal() {
             ItemStack itemStack = mob.getMainHandItem();
-            if (itemStack.getItem() instanceof BowItem) {
-                if (!(currentGoal instanceof RangedBowAttackGoal)) {
-                    currentGoal = new RangedBowAttackGoal<>(mob, speed, 20, 15.0F);
-                }
-            } else {
-                if (!(currentGoal instanceof MeleeAttackGoal)) {
-                    currentGoal = new MeleeAttackGoal(mob, speed, longMemory);
-                }
+            Goal newGoal = (itemStack.getItem() instanceof BowItem) ? rangedGoal : meleeGoal;
+
+            if (newGoal != activeGoal) {
+                if (activeGoal != null) activeGoal.stop();
+                activeGoal = newGoal;
+                activeGoal.start();
             }
+
+            currentGoal = activeGoal;
         }
     }
 

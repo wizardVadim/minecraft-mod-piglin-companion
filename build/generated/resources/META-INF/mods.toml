@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="piglin_companion_mod"
-version="1.0.0"
+version="1.0.2"
 displayName="Piglin Companion Mod"
 authors="wizardVadim"
 description='''

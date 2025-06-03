@@ -10,7 +10,7 @@ ext {
     forge_version = '47.2.0'
     mod_id = 'piglin_companion_mod'
     mod_name = 'Piglin Companion Mod'
-    mod_version = '1.0.0'
+    mod_version = '1.0.2'
     mod_authors = 'wizardVadim'
     mod_description = 'Мод позволяет приручать пиглинов с помощью золотых слитков.'
     mod_license = 'MIT'
