@@ -13,7 +13,7 @@ public class CustomRangedBowAttackGoal<T extends Mob & RangedAttackMob> extends 
     private final double speedModifier;
 
     public CustomRangedBowAttackGoal(T mob, double speedModifier, int attackInterval, float maxAttackDistance, float minAttackDistance) {
-        super(mob, speedModifier, attackInterval, maxAttackDistance); // Mob - наследник LivingEntity, подходит сюда
+        super(mob, speedModifier, attackInterval, maxAttackDistance);
         this.mob = mob;
         this.minAttackDistance = minAttackDistance;
         this.speedModifier = speedModifier;

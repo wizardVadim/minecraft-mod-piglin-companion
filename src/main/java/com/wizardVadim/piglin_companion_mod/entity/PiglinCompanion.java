@@ -51,9 +51,13 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
             SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_EXPERIENCE =
             SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> DATA_ATTACK_TIME =
+            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.FLOAT);
 
     private double rangedAttackDamage;
     private LivingEntity lastKilled;
+    private float prevAttackAnim = 0.0F;
+
 
     public double getRangedAttackDamage() {
         return this.rangedAttackDamage;
@@ -79,6 +83,7 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         this.entityData.define(DATA_TEXTURE_VARIANT, 0);
         this.entityData.define(DATA_LEVEL, 1);
         this.entityData.define(DATA_EXPERIENCE, 0);
+        this.entityData.define(DATA_ATTACK_TIME, 0.0F);
     }
 
     public int getTextureLevel() {
@@ -124,6 +129,44 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
     }
 
     @Override
+    public void tick() {
+        super.tick();
+        float attackTime = this.entityData.get(DATA_ATTACK_TIME);
+
+        this.prevAttackAnim = attackTime;
+
+        if (attackTime > 0.0F) {
+            double attackSpeed = this.getAttributeValue(Attributes.ATTACK_SPEED);
+            float decreaseAmount = (float)(0.05D * attackSpeed);
+            attackTime = Math.max(0.0F, attackTime - decreaseAmount);
+            this.entityData.set(DATA_ATTACK_TIME, attackTime);
+        }
+    }
+
+    public float getAttackAnim(float partialTick) {
+        float current = this.entityData.get(DATA_ATTACK_TIME);
+        return Mth.lerp(partialTick, this.prevAttackAnim, current);
+    }
+
+    public void setAttackAnim(float time) {
+        this.entityData.set(DATA_ATTACK_TIME, time);
+    }
+
+    public void startAttackAnimation() {
+        System.out.println("startAttackAnimation");
+        setAttackAnim(1.0F);
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        boolean result = super.doHurtTarget(target);
+        if (result && this.getAttackAnim(0.0F) <= 0.0F) {
+            startAttackAnimation();
+        }
+        return result;
+    }
+
+    @Override
     public void performRangedAttack(LivingEntity target, float distanceFactor) {
         ItemStack bow = this.getMainHandItem();
         if (!(bow.getItem() instanceof BowItem)) return;
@@ -157,6 +200,8 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
+
+        System.out.println("mobInteract called with item: " + item + ", isClientSide: " + this.level().isClientSide);
 
         if (this.level().isClientSide) {
             boolean interacting = this.isOwnedBy(player) || this.isTame() || this.isFood(stack);
@@ -291,7 +336,7 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
 
     @Override
     public Component getName() {
-        return Component.translatable("entity.piglin_companion_mod.piglin_companion");
+        return this.hasCustomName() ? this.getCustomName() : Component.translatable("entity.piglin_companion_mod.piglin_companion");
     }
 
     @Override

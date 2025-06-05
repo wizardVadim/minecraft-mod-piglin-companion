@@ -1,5 +1,6 @@
 package com.wizardVadim.piglin_companion_mod.goals;
 
+import com.wizardVadim.piglin_companion_mod.entity.PiglinCompanion;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -14,9 +15,9 @@ public class CustomMeleeAttackGoal extends MeleeAttackGoal {
 
     @Override
     protected void checkAndPerformAttack(LivingEntity enemy, double distToEnemySqr) {
-        double reach = this.getAttackReachSqr(enemy);
-        if (distToEnemySqr <= this.getAttackReachSqr(enemy) && this.mob.getAttackAnim(0.0F) == 0.0F) {
+        if (distToEnemySqr <= this.getAttackReachSqr(enemy) && ((PiglinCompanion) this.mob).getAttackAnim(0.0F) == 0.0F) {
             this.mob.swing(InteractionHand.MAIN_HAND);
+            ((PiglinCompanion) this.mob).startAttackAnimation();
             this.mob.doHurtTarget(enemy);
         }
     }
