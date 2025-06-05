@@ -3,7 +3,7 @@ Specification-Title: piglin_companion_mod
 Specification-Vendor: wizardVadim
 Specification-Version: 1
 Implementation-Title: piglin-companion
-Implementation-Version: 1.0.2
+Implementation-Version: 1.1.0
 Implementation-Vendor: wizardVadim
-Implementation-Timestamp: 2025-06-03T23:23:14+0800
+Implementation-Timestamp: 2025-06-05T15:50:19+0800
 

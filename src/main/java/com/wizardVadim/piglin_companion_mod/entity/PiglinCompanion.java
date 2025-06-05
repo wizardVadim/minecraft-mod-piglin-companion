@@ -1,5 +1,7 @@
 package com.wizardVadim.piglin_companion_mod.entity;
 
+import com.wizardVadim.piglin_companion_mod.goals.CustomAttackGoal;
+import com.wizardVadim.piglin_companion_mod.goals.SmartFollowOwnerGoal;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -9,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,12 +23,10 @@ import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,28 +34,59 @@ import java.util.Set;
 
 public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
 
-    private static final EntityDataAccessor<Integer> DATA_TEXTURE_VARIANT =
-            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
-
     public PiglinCompanion(EntityType<? extends TamableAnimal> type, Level level) {
         super(type, level);
         this.setTame(false);
+        this.setRangedAttackDamage(2.0D);
     }
 
+//    Piglin companion params
     private static final HashMap<Item, Float> FOOD_MAP = getFoodMap();
+    private static final Integer MAX_LEVEL = 6;
+    private static final EntityDataAccessor<Integer> DATA_TEXTURE_VARIANT =
+            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_TEXTURE_LEVEL =
+            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_LEVEL =
+            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_EXPERIENCE =
+            SynchedEntityData.defineId(PiglinCompanion.class, EntityDataSerializers.INT);
+
+    private double rangedAttackDamage;
+    private LivingEntity lastKilled;
+
+    public double getRangedAttackDamage() {
+        return this.rangedAttackDamage;
+    }
+
+    public void setRangedAttackDamage(double damage) {
+        this.rangedAttackDamage = damage;
+    }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 24.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.ATTACK_SPEED, 4.0D)
                 .add(Attributes.FOLLOW_RANGE, 20.0D);
     }
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
+        this.entityData.define(DATA_TEXTURE_LEVEL, 1);
         this.entityData.define(DATA_TEXTURE_VARIANT, 0);
+        this.entityData.define(DATA_LEVEL, 1);
+        this.entityData.define(DATA_EXPERIENCE, 0);
+    }
+
+    public int getTextureLevel() {
+        return this.entityData.get(DATA_TEXTURE_LEVEL);
+    }
+
+    public void setTextureLevel(int level) {
+        this.entityData.set(DATA_TEXTURE_LEVEL, level);
     }
 
     public int getTextureVariant() {
@@ -80,16 +112,15 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new CustomAttackGoal(this, 1.2D, true));
-        this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 5.0F, 2.0F, false));
+        this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.0D, 10.0F, 20.0F, false));
         this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
-        this.targetSelector.addGoal(3, new HurtByTargetNoFriendliesGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetNoFriendliesGoal(this).setAlertOthers(PiglinCompanion.class));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Monster.class, true));
-        this.targetSelector.addGoal(5, new HurtByTargetNoFriendliesGoal(this).setAlertOthers(PiglinCompanion.class));
     }
 
     @Override
@@ -97,8 +128,11 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         ItemStack bow = this.getMainHandItem();
         if (!(bow.getItem() instanceof BowItem)) return;
 
+        this.setItemInHand(InteractionHand.MAIN_HAND, bow);
+        this.startUsingItem(InteractionHand.MAIN_HAND);
+
         Arrow arrow = new Arrow(this.level(), this);
-        arrow.setBaseDamage(2.0);
+        arrow.setBaseDamage(getRangedAttackDamage());
         arrow.setOwner(this);
 
         double dx = target.getX() - this.getX();
@@ -107,7 +141,11 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         double distance = Mth.sqrt((float)(dx * dx + dz * dz));
 
         arrow.shoot(dx, dy + distance * 0.2F, dz, 1.6F, 14 - this.level().getDifficulty().getId() * 4);
-        this.level().addFreshEntity(arrow);
+
+        if (!this.level().isClientSide()) {
+            this.level().addFreshEntity(arrow);
+        }
+        this.releaseUsingItem();
     }
 
     @Override
@@ -186,12 +224,58 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("TextureVariant", this.getTextureVariant());
+        tag.putInt("TextureLevel", this.getTextureLevel());
+        tag.putDouble("RangedDamage", this.getRangedAttackDamage());
+        tag.putInt("Level", this.getLevel());
+        tag.putInt("XP", this.getExperience());
+
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        this.setTextureVariant(tag.getInt("TextureVariant"));
+
+        int textureLevel = tag.contains("TextureLevel") ? tag.getInt("TextureLevel") : -1;
+
+        if (textureLevel <= 0 || textureLevel > 5) {
+            textureLevel = 1;
+            System.out.println("Fixing old PiglinCompanion: textureLevel was invalid, defaulting to 1");
+        }
+
+        int textureVariant = tag.contains("TextureVariant") ? tag.getInt("TextureVariant") : 0;
+
+        if (textureVariant < 0 || textureVariant > 2) {
+            textureVariant = getOwner().getRandom().nextInt(3);
+            System.out.println("Fixing old PiglinCompanion: textureVariant was invalid, defaulting to random 0:2");
+        }
+
+        double rangedDamage = tag.contains("RangedDamage") ? tag.getDouble("RangedDamage") : 2.0D;
+
+        if (rangedDamage < 2.0D || rangedDamage > 10.0D) {
+            rangedDamage = 2.0D;
+            System.out.println("Fixing old PiglinCompanion: rangedDamage was invalid, defaulting to 2.0D");
+        }
+
+        int level = tag.contains("Level") ? tag.getInt("Level") : 1;
+
+        if (level < 1 || level > MAX_LEVEL) {
+            level = 1;
+            System.out.println("Fixing old PiglinCompanion: level was invalid, defaulting to 1");
+        }
+
+        int xp = tag.contains("XP") ? tag.getInt("XP") : 1;
+
+        if (xp < 0) {
+            xp = 0;
+            System.out.println("Fixing old PiglinCompanion: xp was invalid, defaulting to 0");
+        }
+
+        this.setExperience(xp);
+        this.setLevel(level);
+        this.updateStatsByLevel(level);
+        this.setTextureLevel(textureLevel);
+        this.setTextureVariant(textureVariant);
+        this.setRangedAttackDamage(rangedDamage);
     }
 
     @Nullable
@@ -220,6 +304,17 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         super.aiStep();
 
         healByTicks(50, 0.5F);
+        checkKills();
+    }
+
+    private void checkKills() {
+        LivingEntity lastHurt = this.getLastHurtMob();
+
+        if (!level().isClientSide && lastHurt != null && !lastHurt.isAlive() && lastHurt != lastKilled) {
+            lastKilled = lastHurt;  // Запоминаем, чтобы не начислить повторно
+            System.out.println("checkKills:: awarding kill score for " + lastHurt.getName().getString());
+            this.awardKillScore(lastHurt, 1, this.level().damageSources().mobAttack(this));
+        }
     }
 
     public void healByTicks(int ticksInterval, float healPoints) {
@@ -230,71 +325,137 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
         }
     }
 
-    public static class CustomAttackGoal extends Goal {
-        private final PiglinCompanion mob;
-        private final double speed;
-        private final boolean longMemory;
-        private Goal currentGoal = null;
-        private Goal activeGoal = null;
-
-        private final Goal rangedGoal;
-        private final Goal meleeGoal;
-
-        public CustomAttackGoal(PiglinCompanion mob, double speed, boolean longMemory) {
-            this.mob = mob;
-            this.speed = speed;
-            this.longMemory = longMemory;
-
-            this.rangedGoal = new RangedBowAttackGoal<>(mob, speed, 20, 15.0F);
-            this.meleeGoal = new MeleeAttackGoal(mob, speed, longMemory);
+    private void updateStatsByLevel(int level) {
+        switch (level) {
+            case 1:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(24.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(4.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+                setRangedAttackDamage(2.0D);
+                break;
+            case 2:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(28.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(6.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(5.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.32D);
+                setRangedAttackDamage(3.0D);
+                break;
+            case 3:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(32.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(7.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(7.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.34D);
+                setRangedAttackDamage(7.0D);
+                break;
+            case 4:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(8.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.36D);
+                setRangedAttackDamage(10.0D);
+                break;
+            case 5:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(48.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(16.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(9.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.38D);
+                setRangedAttackDamage(14.0D);
+                break;
+            case 6:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(60.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(25.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(11.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.40D);
+                setRangedAttackDamage(20.0D);
+                break;
+            default:
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(24.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
+                this.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(4.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+                setRangedAttackDamage(2.0D);
+                break;
         }
+        this.setHealth((float) this.getAttribute(Attributes.MAX_HEALTH).getBaseValue());
 
-        @Override
-        public boolean canUse() {
-            LivingEntity target = this.mob.getTarget();
-            return target != null && target.isAlive();
+        System.out.println("INFO (NEW LEVEL): current max health: " + this.getAttribute(Attributes.MAX_HEALTH).getValue());
+        System.out.println("INFO (NEW LEVEL): current attack: " + this.getAttribute(Attributes.ATTACK_DAMAGE).getValue());
+        System.out.println("INFO (NEW LEVEL): current attack speed: " + this.getAttribute(Attributes.ATTACK_SPEED).getValue());
+        System.out.println("INFO (NEW LEVEL): current movement speed: " + this.getAttribute(Attributes.MOVEMENT_SPEED).getValue());
+        System.out.println("INFO (NEW LEVEL): current ranged attack: " + this.getRangedAttackDamage());
+    }
+
+    @Override
+    public void awardKillScore(Entity killed, int score, DamageSource damageSource) {
+        super.awardKillScore(killed, score, damageSource);
+
+        if (killed instanceof LivingEntity living) {
+            if (this.isTame() && living.getType().getCategory() == MobCategory.MONSTER) {
+                this.addExperience(10);
+            }
         }
+    }
 
-        @Override
-        public void start() {
-            this.selectGoal();
-            if (currentGoal != null) currentGoal.start();
-        }
+    public void addExperience(int amount) {
 
-        @Override
-        public boolean canContinueToUse() {
-            return this.canUse();
-        }
+        System.out.println("addExperience:: amount added " + amount);
 
-        @Override
-        public void stop() {
-            if (currentGoal != null) {
-                currentGoal.stop();
-                currentGoal = null;
-                activeGoal = null;
+        int currentXp = getExperience();
+        int newXp = currentXp + amount;
+
+        while (newXp >= getXpForNextLevel() && getLevel() < MAX_LEVEL) {
+            int xpForNext = getXpForNextLevel();
+            newXp -= xpForNext;
+            setLevel(getLevel() + 1);
+            System.out.println("addExperience:: new level " + getLevel());
+
+            if (this.isTame() && this.getOwner() instanceof Player player) {
+                player.displayClientMessage(Component.literal(this.getDisplayName().getString() + " повысил уровень до " + getLevel()), true);
             }
         }
 
-        @Override
-        public void tick() {
-            this.selectGoal();
-            if (currentGoal != null) {
-                currentGoal.tick();
-            }
+        setExperience(newXp);
+        System.out.println("addExperience:: current xp " + getExperience());
+    }
+
+    private int getXpForNextLevel() {
+        return 50 + (getLevel() - 1) * 25;
+    }
+
+//    Level getters and setters
+    public int getLevel() {
+        return this.entityData.get(DATA_LEVEL);
+    }
+
+    public void setLevel(int level) {
+
+        if (level < 1 || level > MAX_LEVEL) {
+            System.out.println("Level must be lower then " + MAX_LEVEL + " level and bigger then 1");
+            return;
         }
 
-        private void selectGoal() {
-            ItemStack itemStack = mob.getMainHandItem();
-            Goal newGoal = (itemStack.getItem() instanceof BowItem) ? rangedGoal : meleeGoal;
-
-            if (newGoal != activeGoal) {
-                if (activeGoal != null) activeGoal.stop();
-                activeGoal = newGoal;
-                activeGoal.start();
-            }
-
-            currentGoal = activeGoal;
+        switch (level) {
+            case 1:
+                setTextureLevel(1);
+                break;
+            case 3:
+                setTextureLevel(3);
+                break;
+            case 5:
+                setTextureLevel(5);
+                break;
         }
+        this.entityData.set(DATA_LEVEL, level);
+        updateStatsByLevel(level);
+    }
+
+    public int getExperience() {
+        return this.entityData.get(DATA_EXPERIENCE);
+    }
+
+    public void setExperience(int xp) {
+        this.entityData.set(DATA_EXPERIENCE, xp);
     }
 
     public class HurtByTargetNoFriendliesGoal extends HurtByTargetGoal {
@@ -311,11 +472,9 @@ public class PiglinCompanion extends TamableAnimal implements RangedAttackMob {
                 return false;
             }
 
-            // Проверка: напал ли дружественный пиглин
             LivingEntity attacker = piglin.getLastHurtByMob();
             if (attacker instanceof PiglinCompanion otherPiglin) {
                 if (otherPiglin.isTame() && piglin.isTame()) {
-                    // Оба приручены — не атакуем
                     return false;
                 }
             }

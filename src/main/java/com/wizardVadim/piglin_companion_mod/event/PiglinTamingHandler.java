@@ -34,7 +34,6 @@ public class PiglinTamingHandler {
 
         if (target instanceof Piglin piglin) {
             if (heldItem.getItem() == Items.GOLD_BLOCK) {
-                // Пробуем приручить с шансом 1/3
                 if (player.getRandom().nextInt(3) == 0) {
                     Level level = player.level();
 
@@ -56,6 +55,7 @@ public class PiglinTamingHandler {
                         if (companion != null) {
                             int randomVariant = player.getRandom().nextInt(3); // 0, 1 или 2
                             companion.setTextureVariant(randomVariant);
+                            companion.setTextureLevel(1);
 
                             System.out.println("Create new piglin " + companion.getTextureVariant());
                             companion.moveTo(target.getX(), target.getY(), target.getZ(), target.getYRot(), target.getXRot());
@@ -94,7 +94,6 @@ public class PiglinTamingHandler {
 
                     level.playSound(null, target.blockPosition(), SoundEvents.VILLAGER_NO, SoundSource.NEUTRAL, 1.0f, 1.0f);
 
-                    // Можно добавить визуальную или звуковую обратную связь, что приручение не прошло
                     player.displayClientMessage(Component.literal("Пиглин отверг ваше золото"), true);
                     event.setCancellationResult(InteractionResult.FAIL);
                     event.setCanceled(true);
